@@ -249,6 +249,16 @@ Swagger Documentation:
 http://127.0.0.1:8000/docs
 ```
 ---
+Here we are adding the Demo link
+------
+https://drive.google.com/file/d/1TX-z8Yh5Qbq7WsRuFFqTGv_walsr3h90/view?usp=sharing
+
+---------
+
+Streamlit-app-link
+-------
+https://laughing-space-meme-694g9xr96wwq3r5pp.github.dev/
+-------
 
 ## License
 
