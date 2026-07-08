@@ -1,20 +1,20 @@
-import wikipedia
+import wikipediaapi
 
+wiki = wikipediaapi.Wikipedia(
+    language="en",
+    user_agent="PersonalizedNetworkingAssistant/1.0 (student project)"
+)
 
 def fact_check(query):
+    page = wiki.page(query)
 
-    try:
-
-        page = wikipedia.page(query)
-
+    if page.exists():
         return {
-            "summary": wikipedia.summary(query, sentences=2),
-            "url": page.url
+            "summary": page.summary[:500],
+            "url": page.fullurl
         }
 
-    except Exception as e:
-
-        return {
-            "summary": str(e),
-            "url": ""
-        }
+    return {
+        "summary": "No Wikipedia article found.",
+        "url": ""
+    }
