@@ -177,50 +177,99 @@ def get_history():
 
 
 # ==========================================================
-# FEEDBACK
+# History
 # ==========================================================
 
-def save_feedback(response, feedback):
-
-    cursor.execute(
-        """
-        INSERT INTO feedback(
-            response,
-            feedback
-        )
-        VALUES(?,?)
-        """,
-        (
-            response,
-            feedback
-        )
-    )
-
-    conn.commit()
-
-
-def get_feedback():
+def summarize_history():
 
     cursor.execute("""
-        SELECT
-        response,
-        feedback
-        FROM feedback
+        SELECT event, response
+        FROM history
         ORDER BY id DESC
     """)
 
     rows = cursor.fetchall()
 
-    result = []
+    if len(rows) == 0:
+        return "No conversation history available."
 
-    for row in rows:
+    history_text = ""
 
-        result.append({
+    for event, response in rows:
 
-            "response": row["response"],
+        history_text += f"""
+Event:
+{event}
 
-            "feedback": row["feedback"]
+Response:
+{response}
 
-        })
+"""
 
-    return result
+    prompt = f"""
+You are an AI Networking Assistant.
+
+Below is the user's conversation history.
+
+{history_text}
+
+Analyze the user's networking activities.
+
+Provide:
+
+1. Overall networking interests
+2. Frequently discussed topics
+3. Networking strengths
+4. Areas for improvement
+5. Personalized recommendations
+
+Format the response using Markdown.
+"""
+
+    response = model.generate_content(prompt)
+
+    return response.text
+
+# ==========================================================
+# FEEDBACK
+# ==========================================================
+
+def summarize_feedback():
+
+    cursor.execute("""
+        SELECT feedback
+        FROM feedback
+    """)
+
+    rows = cursor.fetchall()
+
+    if len(rows) == 0:
+        return "No feedback available."
+
+    feedback_text = "\n".join(
+        row[0] for row in rows
+    )
+
+    prompt = f"""
+You are an AI Analyst.
+
+User Feedback:
+
+{feedback_text}
+
+Analyze the feedback.
+
+Provide:
+
+1. Overall sentiment
+2. Positive observations
+3. Negative observations
+4. Suggestions for improvement
+5. Final summary
+
+Format the response using Markdown.
+"""
+
+    response = model.generate_content(prompt)
+
+    return response.text

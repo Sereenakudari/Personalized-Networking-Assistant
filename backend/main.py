@@ -17,7 +17,9 @@ from backend.feedback_logger import (
 # Keep your advanced features
 from backend.services import (
     generate_event_plan,
-    networking_coach
+    networking_coach,
+    summarize_history,
+    summarize_feedback
 )
 
 app = FastAPI(
@@ -103,6 +105,9 @@ def verify(query: str):
 # REQUIRED API
 # GET /history
 # =========================================================
+# =========================================================
+# Conversation History
+# =========================================================
 
 @app.get("/history")
 def history():
@@ -111,8 +116,7 @@ def history():
 
 
 # =========================================================
-# REQUIRED API
-# Feedback
+# Save Feedback
 # =========================================================
 
 @app.post("/feedback")
@@ -124,14 +128,40 @@ def feedback(data: dict = Body(...)):
     )
 
     return {
-        "message": "Feedback Saved Successfully"
+        "message": "Feedback saved successfully."
     }
 
+
+# =========================================================
+# Get Feedback
+# =========================================================
 
 @app.get("/feedback")
 def feedback_history():
 
     return load_feedback()
+
+
+
+# =========================================================
+# REQUIRED API
+# Feedback
+# =========================================================
+
+@app.get("/history-summary")
+def history_summary():
+
+    return {
+        "summary": summarize_history()
+    }
+
+
+@app.get("/feedback-summary")
+def feedback_summary():
+
+    return {
+        "summary": summarize_feedback()
+    }
 
 
 # =========================================================
@@ -142,14 +172,16 @@ def feedback_history():
 @app.post("/event-copilot")
 def event_copilot(data: EventPrompt):
 
-    result = generate_event_plan(
-        data.prompt
+    result = generate_event_plan(data.prompt)
+
+    save_history(
+        data.prompt,
+        result
     )
 
     return {
         "response": result
     }
-
 
 # =========================================================
 # EXTRA FEATURE

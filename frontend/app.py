@@ -67,9 +67,9 @@ page = st.sidebar.radio(
     "Navigation",
     [
         "AI Assistant",
-        "AI Networking Coach",
         "Wikipedia Fact Checker",
-        "Conversation History"
+        "Conversation History",
+        "Feedback History"
     ]
 )
 
@@ -178,58 +178,64 @@ I want to meet recruiters for internship opportunities and build my professional
 
                 st.rerun()
 # ============================================================
-# AI NETWORKING COACH
+# Conversation History
 # ============================================================
 
-elif page == "AI Networking Coach":
+elif page == "Conversation History":
 
-    st.title("AI Networking Coach")
+    st.title("Conversation History")
 
-    st.write(
-        "Get personalized networking advice powered by AI."
-    )
+    try:
 
-    st.info(
-        "Ask questions like:\n\n"
-        "- How should I introduce myself at a hackathon?\n"
-        "- How do I approach a recruiter?\n"
-        "- What should I ask at a networking event?\n"
-        "- How can I improve my LinkedIn profile?"
-    )
+        response = requests.get(
+            "http://127.0.0.1:8000/history"
+        )
 
-    question = st.text_area(
-        "Ask your networking question",
-        placeholder="Example: How do I confidently introduce myself at a career fair?"
-    )
+        if response.status_code == 200:
 
-    if st.button("Get AI Advice"):
+            history = response.json()
 
-        if question.strip() == "":
-            st.warning("Please enter a question.")
+            if len(history) == 0:
+
+                st.info("No conversation history available.")
+
+            else:
+
+                for item in history:
+
+                    with st.expander("Conversation"):
+
+                        st.markdown("### Event")
+                        st.write(item["event"])
+
+                        st.markdown("### AI Response")
+                        st.write(item["response"])
+
+            st.divider()
+
+            if st.button("Generate AI Conversation Summary"):
+
+                summary = requests.get(
+                    "http://127.0.0.1:8000/history-summary"
+                )
+
+                if summary.status_code == 200:
+
+                    st.subheader("AI Conversation Analysis")
+
+                    st.markdown(summary.json()["summary"])
+
+                else:
+
+                    st.error("Could not generate summary.")
+
         else:
 
-            with st.spinner("Generating advice..."):
+            st.error("Could not load conversation history.")
 
-                try:
+    except Exception as e:
 
-                    response = requests.get(
-                        "http://127.0.0.1:8000/networking-coach",
-                        params={"question": question}
-                    )
-
-                    if response.status_code == 200:
-
-                        data = response.json()
-
-                        st.success("🎉 AI Networking Advice")
-
-                        st.info(data["advice"])
-
-                    else:
-                        st.error("Could not generate advice.")
-
-                except Exception:
-                    st.error("Backend is not running.")
+        st.error(f"Backend Error: {e}")
 
 # ============================================================
 # WIKIPEDIA
@@ -276,49 +282,68 @@ elif page == "Wikipedia Fact Checker":
             st.error("Backend is not running.")
 
 # ============================================================
-# HISTORY
+#  feedback HISTORY
 # ============================================================
 
-elif page == "Conversation History":
+# ============================================================
+# FEEDBACK HISTORY
+# ============================================================
 
-    st.title("Conversation History")
+elif page == "Feedback History":
 
-    if st.button("🔄 Refresh History"):
+    st.title("Feedback History")
 
-        try:
+    try:
 
-            response = requests.get(
-                "http://127.0.0.1:8000/history"
-            )
+        response = requests.get("http://127.0.0.1:8000/feedback")
 
-            if response.status_code == 200:
+        if response.status_code == 200:
 
-                history = response.json()
+            feedback = response.json()
 
-                if len(history) == 0:
+            if len(feedback) == 0:
 
-                    st.info("No conversation history found.")
-
-                else:
-
-                    for item in history:
-
-                        with st.expander(f" {item['event']}"):
-
-                            st.markdown("###  Bio")
-                            st.write(item["bio"])
-
-                            st.markdown("###  Event")
-                            st.write(item["event"])
-
-                            st.markdown("###  Interests")
-                            st.write(item["interests"])
-
-                            st.markdown("###  AI Conversation Starters")
-                            st.info(item["response"])
+                st.info("No feedback available.")
 
             else:
-                st.error("Could not load history.")
 
-        except Exception:
-            st.error("Backend is not running.")
+                for item in feedback:
+
+                    with st.expander(item["feedback"]):
+
+                        st.markdown("### AI Response")
+                        st.write(item["response"])
+
+                        st.markdown("### User Feedback")
+                        st.success(item["feedback"])
+
+            st.divider()
+
+            if st.button("Generate AI Feedback Analysis"):
+
+                with st.spinner("Analyzing feedback..."):
+
+                    summary = requests.get(
+                        "http://127.0.0.1:8000/feedback-summary"
+                    )
+
+                    if summary.status_code == 200:
+
+                        st.subheader("AI Feedback Analysis")
+
+                        st.markdown(summary.json()["summary"])
+
+                    else:
+
+                        st.error("Could not analyze feedback.")
+
+        else:
+
+            st.error("Could not load feedback.")
+
+    except Exception as e:
+
+        st.error(f"Backend Error: {e}")
+# ============================================================
+# HISTORY
+# ============================================================
